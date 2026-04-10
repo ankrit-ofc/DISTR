@@ -1,0 +1,55 @@
+export function formatPrice(amount: number): string {
+  return "Rs " + new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function formatNumber(n: number): string {
+  return new Intl.NumberFormat("en-IN").format(n);
+}
+
+export function cn(...classes: (string | undefined | null | false)[]): string {
+  return classes.filter(Boolean).join(" ");
+}
+
+export function debounce(fn: (val: string) => void, ms: number): (val: string) => void {
+  let timer: ReturnType<typeof setTimeout>;
+  return (val: string) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(val), ms);
+  };
+}
+
+export function getImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) return "/placeholder.svg";
+  if (imageUrl.startsWith("http")) return imageUrl;
+  const base = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:3001";
+  return `${base}${imageUrl}`;
+}
+
+/** Next.js `[id]` segment — skip fetch when URL is `/…/undefined` or param missing */
+export function routeParamId(param: string | string[] | undefined): string {
+  const s = typeof param === "string" ? param : Array.isArray(param) ? param[0] ?? "" : "";
+  if (!s || s === "undefined") return "";
+  return s;
+}
+
+/** GET /districts returns `{ districts: [...] }`; some callers expect a bare array */
+export function normalizeDistrictsList<T = unknown>(body: unknown): T[] {
+  if (Array.isArray(body)) return body as T[];
+  if (body && typeof body === "object" && "districts" in body) {
+    const list = (body as { districts?: unknown }).districts;
+    return Array.isArray(list) ? (list as T[]) : [];
+  }
+  return [];
+}
+
+export function getStockLabel(stock: number, moq: number): {
+  label: string;
+  color: string;
+} {
+  if (stock <= 0) return { label: "Out of Stock", color: "text-red-500 bg-red-50" };
+  if (stock <= moq * 2) return { label: "Low Stock", color: "text-orange-500 bg-orange-50" };
+  return { label: "In Stock", color: "text-green bg-green-light" };
+}
