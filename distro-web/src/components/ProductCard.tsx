@@ -3,8 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
 import { formatPrice, getImageUrl, getStockLabel } from "@/lib/utils";
 
 export interface Product {
@@ -22,13 +24,22 @@ export interface Product {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
+  const router = useRouter();
   const { addItem } = useCartStore();
+  const { token } = useAuthStore();
   const productImage = product.imageUrl ?? product.image;
   const stockInfo = getStockLabel(product.stock, product.moq);
   const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
+    
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      router.push("/login");
+      return;
+    }
+
     addItem({
       id: product.id,
       name: product.name,

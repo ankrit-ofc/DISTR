@@ -1,19 +1,23 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ShoppingCart, ChevronLeft, Minus, Plus } from "lucide-react";
 import api from "@/lib/api";
+import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
 import { formatPrice, getImageUrl, getStockLabel } from "@/lib/utils";
 import { Product } from "@/components/ProductCard";
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { addItem } = useCartStore();
+
 
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: ["product", id],
@@ -36,6 +40,13 @@ export default function ProductPage() {
 
   function handleAddToCart() {
     if (!product) return;
+
+    if (!useAuthStore.getState().token) {
+      toast.error("Please login to add items to cart");
+      router.push("/login");
+      return;
+    }
+
     addItem(
       {
         id: product.id,
@@ -49,6 +60,7 @@ export default function ProductPage() {
       },
       currentQty
     );
+    toast.success("Added to cart");
   }
 
   if (isLoading) {

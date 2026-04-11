@@ -61,7 +61,12 @@ export const useCartStore = create<CartState>()(
               : state.items.map((i) => (i.id === id ? { ...i, qty } : i)),
         })),
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        set({ items: [] });
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("distro-cart");
+        }
+      },
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),

@@ -39,6 +39,9 @@ export default function RegisterPage() {
   const [ownerName, setOwnerName] = useState("");
   const [phone, setPhone] = useState("");
   const [districtId, setDistrictId] = useState<string>("");
+  const [address, setAddress] = useState("");
+  const [panNumber, setPanNumber] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [step3Loading, setStep3Loading] = useState(false);
@@ -180,6 +183,9 @@ export default function RegisterPage() {
         ownerName,
         phone,
         district: selectedDistrict?.name,
+        address,
+        panNumber,
+        contactPerson,
       });
       setAuth(res.data.token, res.data.profile ?? res.data.user);
       router.push("/");
@@ -413,6 +419,47 @@ export default function RegisterPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-ink block mb-1.5">
+                  Address <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required
+                  placeholder="e.g. Kathmandu-10, Buddhanagar"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink block mb-1.5">
+                  PAN Number (optional)
+                </label>
+                <input
+                  type="text"
+                  value={panNumber}
+                  onChange={(e) => setPanNumber(e.target.value)}
+                  placeholder="9-digit PAN"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink block mb-1.5">
+                  Contact Person <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  required
+                  placeholder="Person to contact"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue"
+                />
               </div>
 
               <div>

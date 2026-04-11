@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { useCartStore } from "./cartStore";
 
 interface User {
   id: number;
@@ -45,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => {
         deleteCookie("distro-token");
         deleteCookie("distro-role");
+        useCartStore.getState().clearCart();
         set({ token: null, user: null });
       },
 

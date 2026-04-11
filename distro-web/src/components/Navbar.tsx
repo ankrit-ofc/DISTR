@@ -3,17 +3,30 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart, User, Menu, X, LayoutDashboard, LogOut } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
 import CartDrawer from "./CartDrawer";
 
 export default function Navbar() {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { totalItems, openCart } = useCartStore();
   const { token, user, clearAuth } = useAuthStore();
   const count = totalItems();
+  const [isBouncing, setIsBouncing] = useState(false);
+  const prevCount = useRef(count);
+
+  useEffect(() => {
+    if (count > prevCount.current) {
+      setIsBouncing(true);
+      const timer = setTimeout(() => setIsBouncing(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevCount.current = count;
+  }, [count]);
 
   useEffect(() => {
     setMounted(true);
@@ -26,6 +39,14 @@ export default function Navbar() {
   ];
 
   const isLoggedIn = !!token;
+
+  const handleCartClick = () => {
+    if (!token) {
+      router.push("/login");
+    } else {
+      openCart();
+    }
+  };
 
   return (
     <>
@@ -45,7 +66,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+                className="text-sm font-medium text-white/80 hover:text-white transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-white hover:after:w-full after:transition-all after:duration-200 py-1"
               >
                 {link.label}
               </Link>
@@ -56,11 +77,11 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {/* Cart */}
             <button
-              onClick={openCart}
+              onClick={handleCartClick}
               className="relative p-2 rounded-lg hover:bg-blue-pale transition-colors"
               aria-label="Open cart"
             >
-              <ShoppingCart size={22} className="text-white" />
+              <ShoppingCart size={22} className={`text-white transition-transform ${isBouncing ? 'animate-bounce' : ''}`} />
               {mounted && count > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-blue text-white text-xs font-grotesk font-bold rounded-full flex items-center justify-center px-1">
                   {count > 99 ? "99+" : count}
@@ -82,7 +103,7 @@ export default function Navbar() {
                     <span className="truncate tracking-tight">{user?.storeName || 'Account'}</span>
                   </Link>
                   <button
-                    onClick={() => clearAuth()}
+                    onClick={() => { clearAuth(); useCartStore.getState().clearCart(); }}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     title="Logout"
                   >
@@ -92,7 +113,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-blue border border-blue/20 rounded-xl px-4 py-2 hover:bg-blue hover:text-white transition-all duration-300 shadow-sm shadow-blue/10"
+                  className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-white border border-white/30 rounded-xl px-4 py-2 hover:bg-white hover:text-blue transition-all duration-300 shadow-sm"
                 >
                   <User size={16} strokeWidth={2.5} />
                   Login
@@ -136,7 +157,7 @@ export default function Navbar() {
                     {user?.storeName || 'Account Dashboard'}
                   </Link>
                   <button
-                    onClick={() => { clearAuth(); setMobileOpen(false); }}
+                    onClick={() => { clearAuth(); useCartStore.getState().clearCart(); setMobileOpen(false); }}
                     className="flex items-center gap-2 text-sm font-medium text-red-500 py-2 px-3 rounded-lg hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={16} />

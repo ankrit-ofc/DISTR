@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useCartStore } from "@/store/cartStore";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -56,6 +57,7 @@ export default function AdminSidebar() {
 
   function handleLogout() {
     clearAuth();
+    useCartStore.getState().clearCart();
     router.push("/login");
   }
 
