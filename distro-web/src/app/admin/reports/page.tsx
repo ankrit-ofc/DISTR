@@ -2,17 +2,16 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import dynamic from "next/dynamic";
 import api from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
+
+const RevenueChart = dynamic(() => import("@/components/admin/RevenueChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[224px] bg-blue-pale rounded-xl animate-pulse" />
+  ),
+});
 
 interface RevenuePoint {
   date: string;
@@ -43,28 +42,6 @@ interface ReportData {
   totalRevenue: number;
   totalOrders: number;
 }
-
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: { value: number }[];
-  label?: string;
-}) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-lg text-xs">
-        <p className="font-medium text-gray-600 mb-1">{label}</p>
-        <p className="font-grotesk font-bold text-blue">
-          {formatPrice(payload[0].value)}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
 
 export default function AdminReportsPage() {
   const today = new Date().toISOString().split("T")[0];
@@ -141,37 +118,7 @@ export default function AdminReportsPage() {
             No data for selected period.
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={224}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#E0E4F0"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 11, fill: "#9BA3BF" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#9BA3BF" }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="revenue"
-                fill="#1A4BDB"
-                radius={[6, 6, 0, 0]}
-                maxBarSize={40}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <RevenueChart data={chartData} />
         )}
       </div>
 

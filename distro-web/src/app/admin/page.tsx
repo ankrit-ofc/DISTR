@@ -108,34 +108,34 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <Link
               key={card.label}
               href={card.href}
-              className="bg-white border border-gray-200 rounded-2xl p-5 hover:border-blue hover:shadow-md transition-all duration-200"
+              className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm shadow-gray-200/50 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300 group"
             >
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${card.color}`}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3 ${card.color}`}
               >
-                <Icon size={20} />
+                <Icon size={22} />
               </div>
-              <p className="font-grotesk font-bold text-2xl text-ink">
+              <p className="font-grotesk font-extrabold text-3xl text-ink tracking-tight">
                 {card.value}
               </p>
-              <p className="text-xs text-gray-400 mt-1">{card.label}</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-1.5">{card.label}</p>
             </Link>
           );
         })}
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-8">
         {/* Recent orders */}
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-            <h2 className="font-grotesk font-semibold text-base text-ink">
+        <div className="bg-white border border-gray-100 rounded-[32px] shadow-sm shadow-gray-200/50 overflow-hidden">
+          <div className="flex items-center justify-between px-8 py-6 border-b border-gray-50">
+            <h2 className="font-grotesk font-bold text-lg text-ink">
               Recent Orders
             </h2>
             <Link
@@ -152,46 +152,46 @@ export default function AdminDashboard() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-off-white">
+                <thead className="bg-gray-50/50">
                   <tr>
                     {["Order", "Buyer", "Status", "Total", "Time"].map((h) => (
                       <th
                         key={h}
-                        className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                        className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wide"
                       >
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {recentOrders.map((o) => (
                     <tr
                       key={o.id}
-                      className="hover:bg-off-white transition-colors cursor-pointer"
+                      className="hover:bg-gray-50/50 transition-colors cursor-pointer"
                       onClick={() =>
                         window.location.assign(`/admin/orders?id=${o.id}`)
                       }
                     >
-                      <td className="px-4 py-3 font-grotesk font-semibold text-ink">
+                      <td className="px-6 py-5 font-grotesk font-bold text-ink">
                         #{o.orderNumber}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 truncate max-w-[140px]">
+                      <td className="px-6 py-5 text-gray-600 font-medium truncate max-w-[140px]">
                         {o.storeName}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-5">
                         <span
-                          className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                          className={`text-xs font-medium px-3 py-1 rounded-full ${
                             STATUS_STYLES[o.status] || "bg-gray-200 text-gray-600"
                           }`}
                         >
                           {o.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-grotesk font-semibold text-blue">
+                      <td className="px-6 py-5 font-grotesk font-semibold text-blue">
                         {formatPrice(o.total)}
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                      <td className="px-6 py-5 text-gray-400 text-xs whitespace-nowrap">
                         {new Date(o.createdAt).toLocaleTimeString("en-NP", {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -206,26 +206,26 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick actions */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="font-grotesk font-semibold text-base text-ink mb-4">
+        <div className="bg-white border border-gray-100 rounded-[32px] shadow-sm shadow-gray-200/50 p-8">
+          <h2 className="font-grotesk font-bold text-lg text-ink mb-6">
             Quick Actions
           </h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {quickActions.map((action) => {
               const Icon = action.icon;
               return (
                 <Link
                   key={action.label}
                   href={action.href}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-blue hover:bg-blue-pale transition-all"
+                  className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-blue/20 hover:bg-blue-50/50 transition-all group"
                 >
-                  <div className="w-8 h-8 bg-blue-light rounded-lg flex items-center justify-center">
-                    <Icon size={16} className="text-blue" />
+                  <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <Icon size={18} className="text-gray-600 group-hover:text-blue" />
                   </div>
-                  <span className="text-sm font-medium text-ink">
+                  <span className="text-sm font-semibold text-ink">
                     {action.label}
                   </span>
-                  <ChevronRight size={14} className="ml-auto text-gray-400" />
+                  <ChevronRight size={16} className="ml-auto text-gray-300 group-hover:text-blue" />
                 </Link>
               );
             })}
