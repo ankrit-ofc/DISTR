@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -19,7 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { getSessionInitial } from "@/lib/utils";
 
@@ -44,6 +43,13 @@ export default function AdminSidebar() {
   const { clearAuth, user } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
 
+  // Prefetch all admin routes on mount for instant navigation
+  useEffect(() => {
+    NAV.forEach((item) => {
+      router.prefetch(item.href);
+    });
+  }, [router]);
+
   function isActive(href: string, exact?: boolean) {
     if (exact) return pathname === href;
     return pathname.startsWith(href);
@@ -57,13 +63,13 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className={`relative flex flex-col h-full bg-ink transition-all duration-200 ${
-        collapsed ? "w-16" : "w-[220px]"
+      className={`relative flex flex-col h-full bg-ink transition-all duration-300 ease-in-out shadow-2xl shadow-ink/20 ${
+        collapsed ? "w-18" : "w-[240px]"
       }`}
     >
       {/* Logo */}
       <div
-        className={`flex items-center h-16 border-b border-white/10 px-4 ${
+        className={`flex items-center h-16 border-b border-white/5 px-5 ${
           collapsed ? "justify-center" : ""
         }`}
       >
@@ -92,24 +98,24 @@ export default function AdminSidebar() {
           const active = isActive(item.href, item.exact);
           const Icon = item.icon;
           return (
-            <Link
+            <div
               key={item.href}
-              href={item.href}
+              onClick={() => router.push(item.href)}
               title={collapsed ? item.label : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 transition-all duration-150 group ${
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl mb-1.5 transition-all duration-200 group cursor-pointer ${
                 active
-                  ? "bg-blue text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/10"
+                  ? "bg-gradient-to-r from-blue to-blue-dark text-white shadow-lg shadow-blue/20"
+                  : "text-white/50 hover:text-white hover:bg-white/5"
               }`}
             >
               <Icon
-                size={18}
-                className={`flex-shrink-0 ${active ? "text-white" : ""}`}
+                size={19}
+                className={`flex-shrink-0 transition-transform group-hover:scale-110 ${active ? "text-white" : "opacity-80"}`}
               />
               {!collapsed && (
                 <span className="text-sm font-medium truncate">{item.label}</span>
               )}
-            </Link>
+            </div>
           );
         })}
       </nav>

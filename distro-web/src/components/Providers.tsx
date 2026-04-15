@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { useAuthStore } from "@/store/authStore";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,6 +20,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
+
+  // If we haven't hydrated from localStorage yet, render nothing or a loader
+  // to prevent components from seeing a null token and triggering redirects.
+  if (!hasHydrated) return null;
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
