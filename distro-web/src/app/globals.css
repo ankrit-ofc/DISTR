@@ -106,6 +106,23 @@ h1, h2, h3, h4, h5, h6, .font-display {
   color: var(--gray-400);
 }
 
+/* ── PWA / Mobile ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pb-mobile-nav {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  footer {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Standalone PWA — remove bounce/overscroll */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior: none;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

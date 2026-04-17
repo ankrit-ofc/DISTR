@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ShoppingCart, UserCircle, Package, LogOut } from "lucide-react";
+import { ShoppingCart, UserCircle, Package, LogOut, Menu, X } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
 import { getSessionDisplayName, getSessionInitial } from "@/lib/utils";
@@ -23,6 +23,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const count = totalItems();
 
@@ -61,7 +62,17 @@ export default function Navbar() {
         className={`distro-navbar${scrolled ? " scrolled" : ""}`}
         aria-label="Primary"
       >
-        {/* LEFT */}
+        {/* MOBILE HAMBURGER */}
+        <button
+          type="button"
+          className="nav-hamburger"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
+        {/* LEFT — desktop nav links */}
         <div className="nav-left">
           {LINKS.map((l) => {
             const active =
@@ -172,6 +183,56 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+
+      {/* MOBILE DRAWER */}
+      {mobileOpen && (
+        <div className="nav-mobile-overlay" onClick={() => setMobileOpen(false)}>
+          <div className="nav-mobile-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="nav-mobile-links">
+              {LINKS.map((l) => {
+                const active = pathname === l.href || pathname?.startsWith(l.href + "/");
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={`nav-mobile-link${active ? " is-active" : ""}`}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {l.label}
+                  </Link>
+                );
+              })}
+            </div>
+            {loggedIn && user && (
+              <div className="nav-mobile-user">
+                <div className="nav-mobile-user-info">
+                  <span className="nav-session-avatar" aria-hidden>{sessionInitial}</span>
+                  <div>
+                    <p className="nav-session-menu-name">{sessionLabel}</p>
+                    <p className="nav-session-menu-phone">{user.phone}</p>
+                  </div>
+                </div>
+                <Link href={sessionHref} className="nav-mobile-link" onClick={() => setMobileOpen(false)}>
+                  {user.role === "ADMIN" ? "Admin Dashboard" : "My Account"}
+                </Link>
+                {user.role === "BUYER" && (
+                  <Link href="/orders" className="nav-mobile-link" onClick={() => setMobileOpen(false)}>
+                    My Orders
+                  </Link>
+                )}
+                <button type="button" onClick={handleLogout} className="nav-mobile-link nav-mobile-logout">
+                  Logout
+                </button>
+              </div>
+            )}
+            {!loggedIn && (
+              <Link href="/login" className="nav-login-btn nav-mobile-login" onClick={() => setMobileOpen(false)}>
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       <CartDrawer />
 
@@ -417,6 +478,151 @@ export default function Navbar() {
         }
         .nav-session-menu-logout:hover {
           background: #fef2f2;
+        }
+
+        /* ── Hamburger (hidden on desktop) ── */
+        .nav-hamburger {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          background: transparent;
+          border: none;
+          border-radius: 10px;
+          color: #334155;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .nav-hamburger:hover {
+          background: #eff6ff;
+          color: #2563eb;
+        }
+
+        /* ── Mobile overlay + drawer ── */
+        .nav-mobile-overlay {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .distro-navbar {
+            grid-template-columns: auto 1fr auto;
+            padding: 0 12px;
+            height: 56px;
+          }
+          .nav-hamburger {
+            display: inline-flex;
+          }
+          .nav-left {
+            display: none;
+          }
+          .nav-center {
+            justify-content: center;
+          }
+          .nav-logo-text {
+            font-size: 18px;
+          }
+          .nav-logo-mark {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+          }
+          .nav-logo-mark svg {
+            width: 16px;
+            height: 16px;
+          }
+          .nav-session-name {
+            display: none;
+          }
+          .nav-session-btn {
+            padding: 4px;
+            border: none;
+          }
+          .nav-login-btn {
+            padding: 7px 16px;
+            font-size: 12px;
+          }
+
+          .nav-mobile-overlay {
+            display: block;
+            position: fixed;
+            inset: 56px 0 0 0;
+            background: rgba(13, 17, 32, 0.4);
+            z-index: 250;
+            animation: fadeIn 0.2s ease;
+          }
+          .nav-mobile-drawer {
+            background: #ffffff;
+            border-bottom: 1px solid #e0e4f0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 8px 24px rgba(13, 17, 32, 0.1);
+          }
+          .nav-mobile-links {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+          .nav-mobile-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #334155;
+            text-decoration: none;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+          }
+          .nav-mobile-link:hover,
+          .nav-mobile-link:active {
+            background: #eff6ff;
+            color: #2563eb;
+          }
+          .nav-mobile-link.is-active {
+            color: #1A4BDB;
+            font-weight: 700;
+            background: #E8EFFE;
+          }
+          .nav-mobile-user {
+            border-top: 1px solid #e0e4f0;
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+          .nav-mobile-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px 12px;
+          }
+          .nav-mobile-logout {
+            color: #ef4444;
+          }
+          .nav-mobile-logout:hover,
+          .nav-mobile-logout:active {
+            background: #fef2f2;
+            color: #ef4444;
+          }
+          .nav-mobile-login {
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
         }
       `}</style>
     </>

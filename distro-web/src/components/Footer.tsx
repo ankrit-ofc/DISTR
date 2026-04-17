@@ -1,70 +1,146 @@
 import Link from "next/link";
 
+interface FooterLink {
+  text: string;
+  href: string;
+}
+
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+const MENU_ITEMS: FooterSection[] = [
+  {
+    title: "Shop",
+    links: [
+      { text: "Catalogue", href: "/catalogue" },
+      { text: "Coverage Area", href: "/coverage" },
+      { text: "Track Order", href: "/track" },
+      { text: "FAQ", href: "/faq" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { text: "About DISTRO", href: "/about" },
+      { text: "Privacy Policy", href: "/privacy" },
+      { text: "Terms & Conditions", href: "/terms" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { text: "WhatsApp: +977 9800000000", href: "#" },
+      { text: "Mon–Sat, 9 AM – 6 PM", href: "#" },
+    ],
+  },
+];
+
+const BOTTOM_LINKS: FooterLink[] = [
+  { text: "Terms & Conditions", href: "/terms" },
+  { text: "Privacy Policy", href: "/privacy" },
+];
+
 export default function Footer() {
   return (
-    <footer className="bg-ink text-white mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <p className="font-grotesk font-bold text-2xl text-blue mb-2">
-              DISTRO
+    <footer className="bg-[color:var(--off)] text-[color:var(--ink)] mt-16 py-32 border-t border-[color:var(--gray)]">
+      <div className="max-w-6xl mx-auto px-6 md:px-10">
+        {/* ── Top grid ──────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-6">
+          {/* Brand column — spans 2 on desktop */}
+          <div className="col-span-2 mb-8 lg:mb-0">
+            <div className="flex items-center gap-2">
+              <span className="font-display font-bold text-2xl text-[color:var(--blue)]">
+                DISTRO
+              </span>
+            </div>
+            <p className="mt-4 font-bold text-[color:var(--ink)]">
+              Wholesale, made simple.
             </p>
-            <p className="text-gray-400 text-sm mb-1">Wholesale, made simple.</p>
-            <p className="text-gray-400 text-sm">
-              Nepal&apos;s easiest B2B ordering platform for shopkeepers.
+            <p className="mt-2 text-sm text-[color:var(--gray2)] max-w-xs leading-relaxed">
+              Nepal&apos;s easiest B2B ordering platform for shopkeepers. Order
+              in bulk. Deliver to your door.
             </p>
-            <p className="text-gray-400 text-xs mt-4">
-              Order in bulk. Deliver to your door.
-            </p>
+            <div className="mt-5 text-xs text-[color:var(--gray2)]">
+              <p>Payments accepted:</p>
+              <p className="mt-1 font-medium">
+                eSewa &middot; Khalti &middot; Cash on Delivery
+              </p>
+            </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="font-grotesk font-semibold text-sm uppercase tracking-wider text-gray-400 mb-4">
-              Quick Links
-            </h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              {[
-                { href: "/catalogue", label: "Catalogue" },
-                { href: "/coverage", label: "Coverage" },
-                { href: "/track", label: "Track Order" },
-                { href: "/faq", label: "FAQ" },
-                { href: "/about", label: "About" },
-                { href: "/privacy", label: "Privacy Policy" },
-                { href: "/terms", label: "Terms & Conditions" },
-              ].map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="hover:text-white transition-colors"
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Menu columns */}
+          {MENU_ITEMS.map((section) => (
+            <div key={section.title}>
+              <h3 className="mb-4 font-bold text-[color:var(--ink)]">
+                {section.title}
+              </h3>
+              <ul className="space-y-4">
+                {section.links.map((link) => (
+                  <li key={link.text}>
+                    {link.href === "#" ? (
+                      <span className="font-medium text-[color:var(--gray2)]">
+                        {link.text}
+                      </span>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="font-medium text-[color:var(--gray2)] hover:text-[color:var(--blue)] transition-colors"
+                      >
+                        {link.text}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
-          {/* Support */}
+          {/* Extra — social / CTA column (optional, fills 6th col) */}
           <div>
-            <h3 className="font-grotesk font-semibold text-sm uppercase tracking-wider text-gray-400 mb-4">
-              Support
+            <h3 className="mb-4 font-bold text-[color:var(--ink)]">
+              Get the app
             </h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li>WhatsApp: +977 9800000000</li>
-              <li>Mon–Sat, 9am–6pm</li>
-              <li className="mt-3">
-                <span className="text-xs">Payments accepted:</span>
-                <p className="mt-1">eSewa · Khalti · Cash on Delivery</p>
+            <ul className="space-y-4">
+              <li>
+                <a
+                  href="#"
+                  className="font-medium text-[color:var(--gray2)] hover:text-[color:var(--blue)] transition-colors"
+                >
+                  App Store
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="font-medium text-[color:var(--gray2)] hover:text-[color:var(--blue)] transition-colors"
+                >
+                  Google Play
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} DISTRO. All rights reserved.</p>
-          <p>Made in Nepal 🇳🇵</p>
+        {/* ── Bottom bar ────────────────────────────────────── */}
+        <div className="mt-24 flex flex-col justify-between gap-4 border-t border-[color:var(--gray)] pt-8 text-sm font-medium text-[color:var(--gray2)] md:flex-row md:items-center">
+          <p>
+            &copy; {new Date().getFullYear()} DISTRO. All rights reserved.
+            &nbsp;Made in Nepal
+          </p>
+          <ul className="flex gap-4">
+            {BOTTOM_LINKS.map((link) => (
+              <li key={link.text}>
+                <Link
+                  href={link.href}
+                  className="underline underline-offset-2 hover:text-[color:var(--blue)] transition-colors"
+                >
+                  {link.text}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>

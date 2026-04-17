@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { X, MessageCircle, Send, Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import api from "@/lib/api";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -21,6 +22,40 @@ interface ConversationData {
   unreadByBuyer: number;
 }
 
+const panelVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95,
+    transformOrigin: "bottom right",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95,
+    transition: { duration: 0.2 },
+  },
+};
+
+const messageVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 500, damping: 30 },
+  },
+};
+
 export default function ChatWidget() {
   const { token, user } = useAuthStore();
   const [open, setOpen] = useState(false);
@@ -31,6 +66,13 @@ export default function ChatWidget() {
   const [unread, setUnread] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
+
+  const toggleOpen = useCallback(() => {
+    setOpen((v) => {
+      if (!v) setUnread(0);
+      return !v;
+    });
+  }, []);
 
   // Load history when opened
   useEffect(() => {
@@ -90,7 +132,7 @@ export default function ChatWidget() {
         setConversation(histRes.data.conversation);
       }
     } catch {
-      setInput(text); // restore on error
+      setInput(text);
     } finally {
       setSending(false);
     }
@@ -108,107 +150,190 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-      {/* Chat panel */}
-      {open && (
-        <div className="w-[300px] h-[400px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
-          {/* Header */}
-          <div className="bg-blue px-4 py-3 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-white font-semibold text-sm font-grotesk">DISTRO Support</span>
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-white/70 hover:text-white transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {/* Guest prompt */}
-          {!token && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 py-6 bg-off-white">
-              <MessageCircle size={32} className="text-blue opacity-60" />
-              <p className="text-sm font-semibold text-ink text-center">Chat with DISTRO Support</p>
-              <p className="text-xs text-gray-400 text-center">Sign in to start a conversation with our team.</p>
-              <Link
-                href="/login"
-                className="flex items-center gap-2 mt-1 bg-blue text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-dark transition-colors"
-              >
-                <LogIn size={14} />
-                Sign in to chat
-              </Link>
-            </div>
-          )}
-
-          {/* Messages + input (logged-in users only) */}
-          {token && (
-            <>
-              <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-off-white">
-                {messages.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-4">
-                    Send us a message — we reply fast!
-                  </p>
-                )}
-                {messages.map((msg) => {
-                  const isMine = msg.senderRole === "BUYER";
-                  return (
-                    <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[80%] px-3 py-2 text-sm leading-snug ${
-                          isMine
-                            ? "bg-blue text-white rounded-[10px] rounded-br-[3px]"
-                            : "bg-white text-ink border border-gray-200 rounded-[10px] rounded-bl-[3px]"
-                        }`}
-                      >
-                        <p>{msg.body}</p>
-                        <p className={`text-[10px] mt-1 ${isMine ? "text-blue-200" : "text-gray-400"}`}>
-                          {formatTime(msg.createdAt)}
-                        </p>
-                      </div>
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+      {/* ── Chat panel ──────────────────────────────────────── */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="chat-panel"
+            variants={panelVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="w-[340px] sm:w-[380px] overflow-hidden rounded-2xl border border-[color:var(--gray)]/40 bg-white/60 shadow-2xl backdrop-blur-xl ring-1 ring-white/10 flex flex-col"
+            style={{ height: 460 }}
+          >
+            {/* Header */}
+            <div className="relative border-b border-[color:var(--gray)]/40 overflow-hidden flex-shrink-0">
+              <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--blue)] to-[color:var(--blue-dark)] opacity-95" />
+              <div className="relative flex items-center justify-between p-4 z-10">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-display font-bold text-sm backdrop-blur-sm border-2 border-white/30">
+                      D
                     </div>
-                  );
-                })}
-                <div ref={bottomRef} />
-              </div>
-
-              {/* Input */}
-              <div className="flex items-end gap-2 px-3 py-3 border-t border-gray-100 bg-white flex-shrink-0">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type a message..."
-                  rows={1}
-                  className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-blue transition-colors max-h-[80px] overflow-auto"
-                  style={{ height: "36px" }}
-                />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[color:var(--blue)] bg-[color:var(--green)]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white font-display">
+                      DISTRO Support
+                    </h3>
+                    <span className="text-xs text-blue-200">
+                      We reply fast
+                    </span>
+                  </div>
+                </div>
                 <button
-                  onClick={handleSend}
-                  disabled={!input.trim() || sending}
-                  className="w-9 h-9 rounded-full bg-blue text-white flex items-center justify-center flex-shrink-0 disabled:opacity-50 hover:bg-blue-dark transition-colors"
+                  onClick={() => setOpen(false)}
+                  className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors text-white/70 hover:text-white"
                 >
-                  {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-            </>
-          )}
-        </div>
-      )}
+            </div>
 
-      {/* Floating button */}
-      <button
-        onClick={() => { setOpen((v) => !v); setUnread(0); }}
-        className="w-14 h-14 rounded-full bg-blue text-white shadow-lg flex items-center justify-center hover:bg-blue-dark transition-colors relative"
+            {/* Guest prompt */}
+            {!token && (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-8 bg-[color:var(--off)]">
+                <div className="w-14 h-14 rounded-2xl bg-[color:var(--blue-light)] flex items-center justify-center">
+                  <MessageCircle size={28} className="text-[color:var(--blue)] opacity-70" />
+                </div>
+                <p className="text-sm font-semibold text-[color:var(--ink)] text-center">
+                  Chat with DISTRO Support
+                </p>
+                <p className="text-xs text-[color:var(--gray2)] text-center max-w-[220px]">
+                  Sign in to start a conversation with our team.
+                </p>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 mt-2 bg-[color:var(--blue)] text-white text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-[color:var(--blue-dark)] transition-colors shadow-md"
+                >
+                  <LogIn size={14} />
+                  Sign in to chat
+                </Link>
+              </div>
+            )}
+
+            {/* Messages + input (logged-in) */}
+            {token && (
+              <>
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-to-b from-[color:var(--off)] to-white/40">
+                  {messages.length === 0 && (
+                    <motion.div
+                      variants={messageVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="flex gap-3"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[color:var(--blue-light)] flex items-center justify-center flex-shrink-0 text-[color:var(--blue)] font-display text-xs font-bold border border-[color:var(--gray)]/40">
+                        D
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-medium text-[color:var(--gray2)]">
+                          DISTRO Support
+                        </span>
+                        <div className="rounded-2xl rounded-tl-none bg-white/80 px-4 py-2.5 text-sm shadow-sm backdrop-blur-sm border border-[color:var(--gray)]/30 text-[color:var(--ink)]">
+                          <p>Namaste! Send us a message — we reply fast!</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {messages.map((msg) => {
+                    const isMine = msg.senderRole === "BUYER";
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        variants={messageVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className={`flex ${isMine ? "flex-row-reverse" : ""} gap-2`}
+                      >
+                        {!isMine && (
+                          <div className="w-8 h-8 rounded-full bg-[color:var(--blue-light)] flex items-center justify-center flex-shrink-0 text-[color:var(--blue)] font-display text-xs font-bold border border-[color:var(--gray)]/40">
+                            D
+                          </div>
+                        )}
+                        <div className={`flex flex-col ${isMine ? "items-end" : ""} gap-1 max-w-[80%]`}>
+                          <div
+                            className={`px-4 py-2.5 text-sm shadow-sm ${
+                              isMine
+                                ? "rounded-2xl rounded-tr-none bg-[color:var(--blue)] text-white shadow-md"
+                                : "rounded-2xl rounded-tl-none bg-white/80 backdrop-blur-sm border border-[color:var(--gray)]/30 text-[color:var(--ink)]"
+                            }`}
+                          >
+                            <p>{msg.body}</p>
+                          </div>
+                          <span className={`text-[10px] px-1 ${isMine ? "text-[color:var(--gray2)]" : "text-[color:var(--gray2)]"}`}>
+                            {formatTime(msg.createdAt)}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                  <div ref={bottomRef} />
+                </div>
+
+                {/* Input area */}
+                <div className="border-t border-[color:var(--gray)]/40 bg-white/60 p-3 backdrop-blur-md flex-shrink-0">
+                  <form
+                    className="flex items-end gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSend();
+                    }}
+                  >
+                    <textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Type a message..."
+                      rows={1}
+                      className="flex-1 resize-none text-sm border border-[color:var(--gray)]/40 bg-white/50 rounded-full px-4 py-2.5 outline-none transition-all placeholder:text-[color:var(--gray2)] focus:border-[color:var(--blue)]/50 focus:bg-white focus:ring-2 focus:ring-[color:var(--blue)]/10 max-h-[80px] overflow-auto"
+                      style={{ height: "40px" }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!input.trim() || sending}
+                      className="w-10 h-10 rounded-full bg-[color:var(--blue)] text-white flex items-center justify-center flex-shrink-0 disabled:opacity-50 shadow-lg transition-transform hover:scale-105 hover:shadow-[color:var(--blue)]/25"
+                    >
+                      {sending ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Send size={16} />
+                      )}
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Floating action button ──────────────────────────── */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={toggleOpen}
+        className={`group relative flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 ${
+          open
+            ? "bg-red-500 text-white rotate-90"
+            : "bg-[color:var(--blue)] text-white hover:shadow-[color:var(--blue)]/25"
+        }`}
       >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+        <span className="absolute inset-0 -z-10 rounded-full bg-inherit opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40" />
+        {open ? (
+          <X className="h-6 w-6" />
+        ) : (
+          <MessageCircle className="h-6 w-6" />
+        )}
         {!open && unread > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-bounce">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
-      </button>
+      </motion.button>
     </div>
   );
 }

@@ -15,10 +15,11 @@ import {
   ShieldCheck,
   Truck,
   TrendingUp,
-  Apple,
-  Play,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
+import { AppStoreButton } from "@/components/ui/app-store-button";
+import { PlayStoreButton } from "@/components/ui/play-store-button";
+import ClientFeedback from "@/components/ui/testimonial";
 import { useReveal } from "@/hooks/useReveal";
 import { getImageUrl, formatPrice } from "@/lib/utils";
 import type { Product } from "@/components/ProductCard";
@@ -326,29 +327,11 @@ export default function HomeClient({
             </div>
 
             <div className="fade-up delay-4 flex flex-wrap gap-3 mb-8">
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white border border-[color:var(--gray)] rounded-xl px-4 py-2 flex items-center gap-2 hover:border-[color:var(--blue)] hover:-translate-y-0.5 transition"
-              >
-                <Apple size={22} className="text-[color:var(--ink)]" />
-                <div className="text-left">
-                  <p className="text-[9px] text-[color:var(--gray2)] leading-none">Download on the</p>
-                  <p className="text-sm font-bold text-[color:var(--ink)] leading-tight">App Store</p>
-                </div>
+              <a href="#" target="_blank" rel="noopener noreferrer">
+                <AppStoreButton variant="outline" className="rounded-xl border-[color:var(--gray)] text-[color:var(--ink)] bg-white hover:border-[color:var(--blue)] hover:-translate-y-0.5 transition" />
               </a>
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white border border-[color:var(--gray)] rounded-xl px-4 py-2 flex items-center gap-2 hover:border-[color:var(--blue)] hover:-translate-y-0.5 transition"
-              >
-                <Play size={22} className="text-[color:var(--ink)]" fill="currentColor" />
-                <div className="text-left">
-                  <p className="text-[9px] text-[color:var(--gray2)] leading-none">Get it on</p>
-                  <p className="text-sm font-bold text-[color:var(--ink)] leading-tight">Google Play</p>
-                </div>
+              <a href="#" target="_blank" rel="noopener noreferrer">
+                <PlayStoreButton variant="outline" className="rounded-xl border-[color:var(--gray)] text-[color:var(--ink)] bg-white hover:border-[color:var(--blue)] hover:-translate-y-0.5 transition" />
               </a>
             </div>
 
@@ -581,6 +564,11 @@ export default function HomeClient({
             </button>
           </div>
         </div>
+      </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────────────── */}
+      <section className="reveal max-w-6xl mx-auto px-6 md:px-10 pb-12">
+        <ClientFeedback />
       </section>
     </>
   );

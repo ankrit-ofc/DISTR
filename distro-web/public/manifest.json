@@ -1,0 +1,18 @@
+{
+  "name": "DISTRO — Wholesale, made simple.",
+  "short_name": "DISTRO",
+  "description": "Nepal's easiest B2B ordering platform for shopkeepers.",
+  "start_url": "/catalogue",
+  "display": "standalone",
+  "background_color": "#F7F9FF",
+  "theme_color": "#1A4BDB",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
