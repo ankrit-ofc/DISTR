@@ -65,7 +65,7 @@ function TrackContent() {
   const isCancelled = result?.status === "CANCELLED";
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 py-12">
+    <div className="max-w-xl mx-auto px-4 sm:px-6 pt-2 pb-12">
       <div className="text-center mb-8">
         <h1 className="font-grotesk font-bold text-2xl text-ink mb-2">
           Track Your Order

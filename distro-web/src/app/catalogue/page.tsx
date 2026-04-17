@@ -63,7 +63,7 @@ function CatalogueContent() {
         params.set(key, value);
       }
       params.set("page", "1");
-      router.push(`/catalogue?${params.toString()}`);
+      router.replace(`/catalogue?${params.toString()}`, { scroll: false });
     },
     [router, searchParams]
   );
@@ -240,46 +240,48 @@ function CatalogueContent() {
         inStockOnly ||
         priceMin > 0 ||
         priceMax < 10000) && (
-        <button
-          onClick={() => router.push("/catalogue")}
-          className="w-full text-sm text-red-500 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
-        >
-          Clear All Filters
-        </button>
-      )}
+          <button
+            onClick={() => router.push("/catalogue")}
+            className="w-full text-sm text-red-500 border border-red-200 rounded-lg py-2 hover:bg-red-50 transition-colors"
+          >
+            Clear All Filters
+          </button>
+        )}
     </aside>
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
       <h1 className="font-grotesk font-bold text-2xl text-ink mb-6">Catalogue</h1>
 
       {/* Search + Sort bar */}
       <div className="flex gap-3 mb-6">
-        <div className="flex-1 relative">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search products…"
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue bg-white"
-          />
-          {searchInput && (
-            <button
-              onClick={() => {
-                setSearchInput("");
-                setParam("q", null);
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        {!q && (
+          <div className="flex-1 relative">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search products…"
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue bg-white"
+            />
+            {searchInput && (
+              <button
+                onClick={() => {
+                  setSearchInput("");
+                  setParam("q", null);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-ink"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
 
         <select
           value={sort}
@@ -370,11 +372,10 @@ function CatalogueContent() {
                       <button
                         key={p}
                         onClick={() => setParam("page", String(p))}
-                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                          p === page
-                            ? "bg-blue text-white"
-                            : "border border-gray-200 hover:bg-blue-pale text-gray-600"
-                        }`}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${p === page
+                          ? "bg-blue text-white"
+                          : "border border-gray-200 hover:bg-blue-pale text-gray-600"
+                          }`}
                       >
                         {p}
                       </button>

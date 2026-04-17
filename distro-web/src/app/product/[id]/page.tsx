@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { ShoppingCart, ChevronLeft, Minus, Plus } from "lucide-react";
+import { useState, useRef } from "react";
+import { ShoppingCart, ChevronLeft, Minus, Plus, Edit2 } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice, getImageUrl, getStockLabel } from "@/lib/utils";
@@ -22,16 +23,34 @@ export default function ProductPage() {
   });
 
   const [qty, setQty] = useState<number | null>(null);
+  const qtyInputRef = useRef<HTMLInputElement>(null);
 
   const moq = product?.moq || 1;
   const currentQty = qty ?? moq;
   const productImage = product?.imageUrl ?? product?.image;
 
   function decrement() {
-    if (currentQty - moq >= moq) setQty(currentQty - moq);
+    const newQty = currentQty - moq;
+    if (newQty >= moq) setQty(newQty);
   }
   function increment() {
     setQty(currentQty + moq);
+  }
+  function handleQtyChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    if (value === '') {
+      setQty(null);
+      return;
+    }
+    const num = parseInt(value, 10);
+    if (!isNaN(num) && num >= 0) {
+      setQty(num);
+    }
+  }
+  function handleQtyBlur() {
+    if (qty === null || qty < moq) {
+      setQty(moq);
+    }
   }
 
   function handleAddToCart() {
@@ -49,6 +68,7 @@ export default function ProductPage() {
       },
       currentQty
     );
+    toast.success(`${product.name} added to cart`);
   }
 
   if (isLoading) {
@@ -170,9 +190,20 @@ export default function ProductPage() {
                 >
                   <Minus size={16} />
                 </button>
-                <span className="font-grotesk font-bold text-xl w-12 text-center">
-                  {currentQty}
-                </span>
+                <input
+                  ref={qtyInputRef}
+                  type="number"
+                  value={currentQty}
+                  onChange={handleQtyChange}
+                  onBlur={handleQtyBlur}
+                  min={moq}
+                  className="font-grotesk font-bold text-xl w-12 text-center bg-transparent border-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <Edit2
+                  size={12}
+                  className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                  onClick={() => qtyInputRef.current?.focus()}
+                />
                 <button
                   onClick={increment}
                   className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-blue-pale transition-colors"

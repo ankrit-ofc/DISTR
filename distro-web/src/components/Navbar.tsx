@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ShoppingCart, UserCircle, Package, LogOut, Menu, X } from "lucide-react";
+import { ShoppingCart, UserCircle, Package, LogOut, Menu, X, Search } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
 import { getSessionDisplayName, getSessionInitial } from "@/lib/utils";
 import CartDrawer from "./CartDrawer";
 
 const LINKS = [
+  { href: "/", label: "Home" },
   { href: "/catalogue", label: "Catalogue" },
   { href: "/track", label: "Track Order" },
   { href: "/coverage", label: "Coverage" },
@@ -24,7 +25,10 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pillStyle, setPillStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  const [searchTerm, setSearchTerm] = useState("");
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const navRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const count = totalItems();
 
   useEffect(() => {
@@ -43,6 +47,21 @@ export default function Navbar() {
     if (menuOpen) document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [menuOpen]);
+
+  useEffect(() => {
+    const activeIndex = LINKS.findIndex(
+      (l) => pathname === l.href || (l.href !== "/" && pathname?.startsWith(l.href + "/"))
+    );
+    if (activeIndex !== -1 && navRefs.current[activeIndex]) {
+      const el = navRefs.current[activeIndex];
+      if (el) {
+        setPillStyle({
+          left: el.offsetLeft,
+          width: el.offsetWidth,
+        });
+      }
+    }
+  }, [pathname, mounted]);
 
   const showBadge = mounted && count > 0;
   const loggedIn = mounted && !!token && !!user;
@@ -72,39 +91,52 @@ export default function Navbar() {
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
-        {/* LEFT — desktop nav links */}
+        {/* LEFT — Logo */}
         <div className="nav-left">
-          {LINKS.map((l) => {
-            const active =
-              pathname === l.href || pathname?.startsWith(l.href + "/");
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`nav-link${active ? " is-active" : ""}`}
-              >
-                {l.label}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* CENTER */}
-        <div className="nav-center">
           <Link href="/" className="nav-logo" aria-label="DISTRO home">
-            <span className="nav-logo-mark" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
-              </svg>
-            </span>
-            <span className="nav-logo-text">DISTRO</span>
+            <img src="/logo.png" alt="DISTRO" className="nav-logo-img" />
           </Link>
         </div>
 
-        {/* RIGHT */}
+        {/* CENTER — Nav links with sliding pill */}
+        <div className="nav-center">
+          <div className="nav-links-wrapper">
+            <div className="nav-pill" style={{ left: `${pillStyle.left}px`, width: `${pillStyle.width}px` }} />
+            {LINKS.map((l, idx) => {
+              const active =
+                pathname === l.href || (l.href !== "/" && pathname?.startsWith(l.href + "/"));
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  ref={(el) => { navRefs.current[idx] = el; }}
+                  className={`nav-link${active ? " is-active" : ""}`}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* RIGHT — Search + Cart + User */}
         <div className="nav-right">
+          <div className="nav-search">
+            <Search size={16} className="nav-search-icon" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              className="nav-search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchTerm.trim()) {
+                  router.push(`/catalogue?q=${encodeURIComponent(searchTerm.trim())}`);
+                }
+              }}
+            />
+          </div>
+
           <button
             id="cartBtn"
             type="button"
@@ -112,7 +144,7 @@ export default function Navbar() {
             className="nav-cart-btn"
             aria-label="Open cart"
           >
-            <ShoppingCart size={24} strokeWidth={2} />
+            <ShoppingCart size={20} strokeWidth={2} />
             <span
               id="cartCount"
               className={`nav-cart-badge${showBadge ? " is-visible" : ""}`}
@@ -141,7 +173,6 @@ export default function Navbar() {
                 <span className="nav-session-avatar" aria-hidden>
                   {sessionInitial}
                 </span>
-                <span className="nav-session-name">{sessionLabel}</span>
               </button>
 
               {menuOpen && (
@@ -238,101 +269,148 @@ export default function Navbar() {
 
       <style jsx global>{`
         .distro-navbar {
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
+          display: flex;
           align-items: center;
-          height: 64px;
+          justify-content: space-between;
+          height: 70px;
           padding: 0 32px;
-          background: #ffffff;
-          border-bottom: 1px solid #e0e4f0;
+          background: transparent;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(226, 232, 240, 0.5);
           position: sticky;
           top: 0;
           z-index: 200;
-          transition: box-shadow 0.2s ease;
+          transition: box-shadow 0.3s ease, background 0.3s ease;
         }
         .distro-navbar.scrolled {
-          box-shadow: 0 2px 20px rgba(37, 99, 235, 0.08);
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+          background: rgba(255, 255, 255, 0.95);
         }
 
+        /* LEFT — Logo */
         .nav-left {
           display: flex;
-          flex-direction: row;
           align-items: center;
-          gap: 4px;
           justify-content: flex-start;
-        }
-        .nav-link {
-          padding: 7px 14px;
-          font-size: 13px;
-          font-weight: 500;
-          color: #64748b;
-          border-radius: 8px;
-          text-decoration: none;
-          transition: background-color 0.15s ease, color 0.15s ease;
-        }
-        .nav-link:hover {
-          background: #eff6ff;
-          color: #2563eb;
-        }
-        .nav-link.is-active {
-          color: #0d1120;
-          font-weight: 700;
-          background: #f8faff;
-        }
-
-        .nav-center {
-          display: flex;
-          justify-content: center;
-          align-items: center;
+          flex-shrink: 0;
         }
         .nav-logo {
           display: flex;
           align-items: center;
-          gap: 8px;
           text-decoration: none;
         }
-        .nav-logo-mark {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          background: #2563eb;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .nav-logo-text {
-          font-family: var(--font-grotesk), "Space Grotesk", system-ui, sans-serif;
-          font-size: 22px;
-          font-weight: 800;
-          color: #0d1120;
-          letter-spacing: -0.5px;
-          line-height: 1;
+        .nav-logo-img {
+          height: 150px;
+          width: auto;
+          object-fit: contain;
         }
 
+        /* CENTER — Nav links with sliding pill */
+        .nav-center {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex: 1;
+        }
+        .nav-links-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px;
+          border-radius: 12px;
+        }
+        .nav-pill {
+          position: absolute;
+          height: calc(100% - 8px);
+          background: rgba(37, 99, 235, 0.12);
+          border: 1px solid rgba(37, 99, 235, 0.25);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+          border-radius: 8px;
+          transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          z-index: 0;
+          pointer-events: none;
+        }
+        .nav-link {
+          position: relative;
+          z-index: 1;
+          padding: 8px 18px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #475569;
+          text-decoration: none;
+          transition: color 0.2s ease;
+          white-space: nowrap;
+        }
+        .nav-link:hover {
+          color: #334155;
+        }
+        .nav-link.is-active {
+          color: #2563eb;
+          font-weight: 600;
+        }
+
+        /* RIGHT — Search + Cart + User */
         .nav-right {
           display: flex;
-          flex-direction: row;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
           justify-content: flex-end;
+          flex-shrink: 0;
+        }
+
+        .nav-search {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .nav-search-icon {
+          position: absolute;
+          left: 12px;
+          color: #94a3b8;
+          pointer-events: none;
+        }
+        .nav-search-input {
+          width: 200px;
+          height: 38px;
+          padding: 0 12px 0 36px;
+          background: rgba(248, 250, 252, 0.8);
+          border: 1px solid rgba(226, 232, 240, 0.6);
+          border-radius: 20px;
+          font-size: 13px;
+          color: #0d1120;
+          outline: none;
+          transition: all 0.2s ease;
+        }
+        .nav-search-input::placeholder {
+          color: #94a3b8;
+        }
+        .nav-search-input:focus {
+          width: 240px;
+          background: rgba(255, 255, 255, 0.95);
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .nav-cart-btn {
           position: relative;
-          width: 40px;
-          height: 40px;
+          width: 38px;
+          height: 38px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           background: transparent;
           border: none;
           border-radius: 10px;
-          color: #334155;
+          color: #475569;
           cursor: pointer;
-          transition: background-color 0.15s ease, color 0.15s ease;
+          transition: background-color 0.2s ease, color 0.2s ease;
         }
         .nav-cart-btn:hover {
-          background: #eff6ff;
+          background: rgba(239, 246, 255, 0.8);
           color: #2563eb;
         }
         .nav-cart-badge {
@@ -351,7 +429,7 @@ export default function Navbar() {
           text-align: center;
           opacity: 0;
           transform: scale(0);
-          transition: opacity 0.15s ease, transform 0.15s ease;
+          transition: opacity 0.2s ease, transform 0.2s ease;
           pointer-events: none;
         }
         .nav-cart-badge.is-visible {
@@ -362,16 +440,17 @@ export default function Navbar() {
         .nav-login-btn {
           background: #2563eb;
           color: #ffffff;
-          border-radius: 30px;
-          padding: 9px 22px;
+          border-radius: 20px;
+          padding: 9px 20px;
           font-size: 13px;
           font-weight: 600;
           text-decoration: none;
-          transition: background-color 0.15s ease, transform 0.15s ease;
+          transition: all 0.2s ease;
         }
         .nav-login-btn:hover {
           background: #1d4ed8;
           transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .nav-session {
@@ -380,22 +459,19 @@ export default function Navbar() {
         .nav-session-btn {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 4px 14px 4px 4px;
-          background: #ffffff;
-          border: 1px solid #e0e4f0;
-          border-radius: 999px;
+          justify-content: center;
+          padding: 0;
+          background: transparent;
+          border: none;
           cursor: pointer;
-          max-width: 220px;
-          transition: background-color 0.15s ease, border-color 0.15s ease;
+          transition: transform 0.2s ease;
         }
         .nav-session-btn:hover {
-          background: #eff6ff;
-          border-color: #bfdbfe;
+          transform: scale(1.05);
         }
         .nav-session-avatar {
-          width: 32px;
-          height: 32px;
+          width: 38px;
+          height: 38px;
           border-radius: 999px;
           background: #2563eb;
           color: #ffffff;
@@ -403,34 +479,28 @@ export default function Navbar() {
           align-items: center;
           justify-content: center;
           font-family: var(--font-grotesk), "Space Grotesk", system-ui, sans-serif;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 700;
           flex-shrink: 0;
-        }
-        .nav-session-name {
-          font-size: 13px;
-          font-weight: 600;
-          color: #0d1120;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 140px;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
         }
         .nav-session-menu {
           position: absolute;
           right: 0;
-          top: calc(100% + 8px);
+          top: calc(100% + 12px);
           width: 240px;
-          background: #ffffff;
-          border: 1px solid #e0e4f0;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(226, 232, 240, 0.6);
           border-radius: 12px;
-          box-shadow: 0 8px 24px rgba(13, 17, 32, 0.08);
+          box-shadow: 0 8px 32px rgba(13, 17, 32, 0.12);
           overflow: hidden;
           z-index: 210;
         }
         .nav-session-menu-head {
-          padding: 12px 16px;
-          border-bottom: 1px solid #f1f5f9;
+          padding: 14px 16px;
+          border-bottom: 1px solid rgba(241, 245, 249, 0.8);
         }
         .nav-session-menu-name {
           font-size: 13px;
@@ -467,17 +537,17 @@ export default function Navbar() {
           cursor: pointer;
           text-align: left;
           text-decoration: none;
-          transition: background-color 0.15s ease;
+          transition: background-color 0.2s ease;
         }
         .nav-session-menu-item:hover {
-          background: #eff6ff;
+          background: rgba(239, 246, 255, 0.8);
         }
         .nav-session-menu-logout {
           color: #ef4444;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid rgba(241, 245, 249, 0.8);
         }
         .nav-session-menu-logout:hover {
-          background: #fef2f2;
+          background: rgba(254, 242, 242, 0.8);
         }
 
         /* ── Hamburger (hidden on desktop) ── */
@@ -495,7 +565,7 @@ export default function Navbar() {
           -webkit-tap-highlight-color: transparent;
         }
         .nav-hamburger:hover {
-          background: #eff6ff;
+          background: rgba(239, 246, 255, 0.8);
           color: #2563eb;
         }
 
@@ -506,64 +576,66 @@ export default function Navbar() {
 
         @media (max-width: 768px) {
           .distro-navbar {
-            grid-template-columns: auto 1fr auto;
-            padding: 0 12px;
-            height: 56px;
+            padding: 0 16px;
+            height: 60px;
           }
           .nav-hamburger {
             display: inline-flex;
-          }
-          .nav-left {
-            display: none;
+            order: -1;
           }
           .nav-center {
-            justify-content: center;
-          }
-          .nav-logo-text {
-            font-size: 18px;
-          }
-          .nav-logo-mark {
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-          }
-          .nav-logo-mark svg {
-            width: 16px;
-            height: 16px;
-          }
-          .nav-session-name {
             display: none;
           }
+          .nav-logo-img {
+            height: 55px;
+          }
+          .nav-search {
+            display: none;
+          }
+          .nav-right {
+            gap: 8px;
+          }
+          .nav-cart-btn {
+            width: 36px;
+            height: 36px;
+          }
           .nav-session-btn {
-            padding: 4px;
-            border: none;
+            padding: 0;
+          }
+          .nav-session-avatar {
+            width: 36px;
+            height: 36px;
           }
           .nav-login-btn {
-            padding: 7px 16px;
+            padding: 8px 16px;
             font-size: 12px;
           }
 
           .nav-mobile-overlay {
             display: block;
             position: fixed;
-            inset: 56px 0 0 0;
-            background: rgba(13, 17, 32, 0.4);
+            inset: 60px 0 0 0;
+            background: rgba(13, 17, 32, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             z-index: 250;
             animation: fadeIn 0.2s ease;
           }
           .nav-mobile-drawer {
-            background: #ffffff;
-            border-bottom: 1px solid #e0e4f0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
             padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            box-shadow: 0 8px 24px rgba(13, 17, 32, 0.1);
+            box-shadow: 0 8px 24px rgba(13, 17, 32, 0.15);
           }
           .nav-mobile-links {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
           }
           .nav-mobile-link {
             display: flex;
@@ -581,28 +653,29 @@ export default function Navbar() {
             text-align: left;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s ease;
           }
           .nav-mobile-link:hover,
           .nav-mobile-link:active {
-            background: #eff6ff;
+            background: rgba(239, 246, 255, 0.9);
             color: #2563eb;
           }
           .nav-mobile-link.is-active {
-            color: #1A4BDB;
+            color: #ffffff;
             font-weight: 700;
-            background: #E8EFFE;
+            background: #2563eb;
           }
           .nav-mobile-user {
-            border-top: 1px solid #e0e4f0;
+            border-top: 1px solid rgba(226, 232, 240, 0.6);
             padding-top: 12px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
           }
           .nav-mobile-user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             padding: 8px 16px 12px;
           }
           .nav-mobile-logout {
@@ -610,7 +683,7 @@ export default function Navbar() {
           }
           .nav-mobile-logout:hover,
           .nav-mobile-logout:active {
-            background: #fef2f2;
+            background: rgba(254, 242, 242, 0.9);
             color: #ef4444;
           }
           .nav-mobile-login {

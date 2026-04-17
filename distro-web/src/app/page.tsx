@@ -1,4 +1,3 @@
-import TickerBar from "@/components/TickerBar";
 import HomeClient from "@/components/home/HomeClient";
 import type { Product } from "@/components/ProductCard";
 
@@ -61,7 +60,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <TickerBar />
       <HomeClient
         categories={categories}
         products={products}

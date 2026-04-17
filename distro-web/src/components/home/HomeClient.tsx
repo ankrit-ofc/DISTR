@@ -103,45 +103,6 @@ function CategoryIcon({ name }: { name: string }) {
   );
 }
 
-function Stat({ num, label }: { num: string; label: string }) {
-  return (
-    <div>
-      <p className="font-display font-extrabold text-[22px] text-[color:var(--blue)] leading-none">{num}</p>
-      <p className="text-[11px] text-[color:var(--gray2)] font-medium mt-1">{label}</p>
-    </div>
-  );
-}
-
-function TrustItem({
-  icon,
-  title,
-  sub,
-  tone,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  sub: string;
-  tone: "blue" | "green" | "red" | "amber";
-}) {
-  const bg = {
-    blue: "bg-[#EFF6FF] text-[#2563EB]",
-    green: "bg-[#D1FAE5] text-[#00A05A]",
-    red: "bg-[#FEE2E2] text-[#DC2626]",
-    amber: "bg-[#FEF3C7] text-[#D97706]",
-  }[tone];
-  return (
-    <div className="bg-white rounded-xl border border-[color:var(--gray)] hover:border-[color:var(--blue-mid)] hover:-translate-y-0.5 transition p-4 flex items-center gap-3">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${bg}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-sm font-bold text-[color:var(--ink)] leading-tight">{title}</p>
-        <p className="text-xs text-[color:var(--gray2)] leading-tight mt-0.5">{sub}</p>
-      </div>
-    </div>
-  );
-}
-
 function ProductMini({
   product,
   onAdd,
@@ -153,13 +114,8 @@ function ProductMini({
   const mrp = product.mrp ?? 0;
   const discount =
     mrp > product.price ? Math.round(((mrp - product.price) / mrp) * 100) : 0;
-  const stock = product.stockQty ?? product.stock ?? 0;
-  const outOfStock = stock <= 0;
-  const lowStock = stock > 0 && stock <= 20;
-
   function handleClick(e: React.MouseEvent) {
     e.preventDefault();
-    if (outOfStock) return;
     onAdd(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -168,80 +124,45 @@ function ProductMini({
   return (
     <Link
       href={`/product/${product.id}`}
-      className="group bg-white rounded-xl border border-[color:var(--gray)] hover:border-[color:var(--blue)] hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col"
+      className="group bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 overflow-hidden flex flex-col"
     >
-      <div className="relative h-44 bg-[color:var(--off)] overflow-hidden">
+      <div className="relative h-48 bg-gray-50 overflow-hidden">
         <Image
           src={getImageUrl(product.imageUrl ?? product.image)}
           alt={product.name}
           fill
           sizes="(max-width:768px) 50vw, 25vw"
-          className="object-contain p-3 group-hover:scale-105 transition-transform duration-300"
+          className="object-contain p-4"
         />
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {discount > 0 && (
-            <span className="bg-[color:var(--green)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-              -{discount}%
-            </span>
-          )}
-          {lowStock && (
-            <span className="bg-[color:var(--amber)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-              Low stock
-            </span>
-          )}
-          {outOfStock && (
-            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-              Out of stock
-            </span>
-          )}
-        </div>
+        {discount > 0 && (
+          <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded">
+            -{discount}%
+          </span>
+        )}
       </div>
 
-      <div className="p-3 flex flex-col flex-1">
-        {product.brand && (
-          <p className="uppercase text-[10px] text-[color:var(--blue)] font-semibold tracking-wide">
-            {product.brand}
-          </p>
-        )}
-        <p className="text-[13px] font-bold text-[color:var(--ink)] line-clamp-2 mt-0.5">
+      <div className="relative p-4 flex flex-col flex-1">
+        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-2">
           {product.name}
-        </p>
-        <p className="text-[10px] text-[color:var(--gray2)] mt-0.5">{product.unit}</p>
-
-        <div className="mt-2">
-          <p className="text-base font-bold text-[color:var(--blue)]">
-            Rs {product.price.toFixed(2)} / {product.unit}
-          </p>
-          <p className="text-[11px] text-[color:var(--gray2)] mt-0.5">
-            Rs {(product.price * product.moq).toLocaleString("en-IN")} / ctn ({product.moq} pcs)
+        </h3>
+        <div className="flex items-baseline gap-2 mb-auto">
+          <p className="text-base font-semibold text-gray-900">
+            Rs {product.price.toFixed(2)}
           </p>
           {mrp > product.price && (
-            <p className="text-[10px] line-through text-slate-300 mt-0.5">
+            <p className="text-xs line-through text-gray-400">
               Rs {mrp.toFixed(2)}
             </p>
           )}
         </div>
-
-        <div className="mt-auto pt-3 flex items-center justify-between gap-2">
-          <span className="text-[10px] bg-[color:var(--gray)]/60 text-[color:var(--ink)] px-2 py-1 rounded-full font-medium">
-            Min {product.moq} pcs
-          </span>
-          <button
-            type="button"
-            onClick={handleClick}
-            disabled={outOfStock}
-            className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 transition ${
-              outOfStock
-                ? "bg-gray-300 cursor-not-allowed text-[9px] font-bold"
-                : added
-                ? "bg-[color:var(--green)]"
-                : "bg-[color:var(--blue)] hover:bg-[color:var(--blue-dark)]"
-            }`}
-            aria-label="Add to cart"
-          >
-            {outOfStock ? "Out" : added ? <Check size={16} /> : <Plus size={16} />}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleClick}
+          className="absolute bottom-4 right-4 w-7 h-7 bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all duration-200"
+          aria-label="Add to cart"
+        >
+          {added ? <Check size={14} /> : <Plus size={14} />}
+        </button>
       </div>
     </Link>
   );
@@ -282,114 +203,114 @@ export default function HomeClient({
   return (
     <>
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-[color:var(--gray)]">
-        <div className="max-w-[1200px] mx-auto grid md:grid-cols-2 gap-10 items-center px-6 md:px-10 pt-[60px] pb-10">
-          {/* LEFT */}
-          <div>
-            <div className="fade-up inline-flex items-center gap-2 bg-[color:var(--blue-light)] border border-[color:var(--blue-mid)] rounded-full px-3 py-1 text-xs text-[color:var(--blue)] font-semibold mb-4">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[color:var(--green)] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[color:var(--green)]"></span>
-              </span>
-              Nepal&apos;s wholesale platform
-            </div>
-
-            <h1 className="fade-up delay-1 font-display font-extrabold text-[40px] md:text-[48px] text-[color:var(--ink)] leading-tight -tracking-wide mb-4">
-              Everything your shop
-              <br />
-              needs, in{" "}
-              <span className="relative inline-block text-[color:var(--blue)]">
-                one place.
-                <span className="absolute left-0 right-0 bottom-0 h-1.5 bg-[color:var(--blue-mid)] -z-0" aria-hidden="true"></span>
-              </span>
-            </h1>
-
-            <p className="fade-up delay-2 text-base text-[color:var(--gray2)] leading-relaxed mb-7 max-w-md">
-              Browse products, compare prices, and order in bulk. Fast,
-              reliable delivery across Nepal.
-            </p>
-
-            <div className="fade-up delay-3 flex flex-wrap gap-3 mb-8">
-              <button
-                type="button"
-                onClick={() => router.push("/catalogue")}
-                className="bg-[color:var(--blue)] text-white rounded-xl px-7 py-3 text-base font-bold hover:bg-[color:var(--blue-dark)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(37,99,235,.3)] transition"
-              >
-                Browse catalogue
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push("/track")}
-                className="bg-white text-[color:var(--ink)] border border-[color:var(--gray)] rounded-xl px-7 py-3 text-base font-bold hover:border-[color:var(--blue)] hover:text-[color:var(--blue)] transition"
-              >
-                Track my order
-              </button>
-            </div>
-
-            <div className="fade-up delay-4 flex flex-wrap gap-3 mb-8">
-              <a href="#" target="_blank" rel="noopener noreferrer">
-                <AppStoreButton variant="outline" className="rounded-xl border-[color:var(--gray)] text-[color:var(--ink)] bg-white hover:border-[color:var(--blue)] hover:-translate-y-0.5 transition" />
-              </a>
-              <a href="#" target="_blank" rel="noopener noreferrer">
-                <PlayStoreButton variant="outline" className="rounded-xl border-[color:var(--gray)] text-[color:var(--ink)] bg-white hover:border-[color:var(--blue)] hover:-translate-y-0.5 transition" />
-              </a>
-            </div>
-
-            <div className="fade-up delay-5 flex flex-wrap gap-6 pt-6 border-t border-[color:var(--gray)]">
-              <Stat num={`${totalProducts || 39}+`} label="Products" />
-              <Stat num={String(districtsCount || 10)} label="Districts" />
-              <Stat num="Rs 1K" label="Min order" />
-              <Stat num="24h" label="Valley delivery" />
-            </div>
-          </div>
-
-          {/* RIGHT */}
-          <div className="relative min-h-[520px] flex items-center justify-center">
-            <div className="float-anim">
-              <Image
-                src="/image.png"
-                alt="DISTRO wholesale cart"
-                width={580}
-                height={500}
-                priority
-                style={{ objectFit: "contain", width: "100%", height: "auto", maxWidth: 580 }}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.endsWith("/image.svg")) target.src = "/image.svg";
-                }}
-              />
-            </div>
-
-            {/* Floating badges */}
-            <div className="pop-in absolute top-6 left-0 bg-white rounded-2xl shadow-md border border-[color:var(--gray)] p-3 flex items-center gap-2" style={{ animationDelay: ".8s" }}>
-              <div className="w-8 h-8 bg-[color:var(--green-light)] rounded-lg flex items-center justify-center">
-                <Check size={18} className="text-[color:var(--green-dark)]" />
+      <section className="relative bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 pt-2 pb-24 lg:pt-4 lg:pb-32">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* LEFT */}
+            <div className="max-w-xl">
+              <div className="fade-up inline-flex items-center gap-2.5 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 mb-8 shadow-sm shadow-blue-100/50">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="text-sm text-blue-700 font-medium">Nepal&apos;s wholesale platform</span>
               </div>
-              <div>
-                <p className="text-sm font-bold text-[color:var(--ink)] leading-tight">Order placed!</p>
-                <p className="text-[10px] text-[color:var(--gray2)] leading-tight">ORD-20240315-0042</p>
+
+              <h1 className="fade-up delay-1 font-['Alegreya_Sans'] text-5xl lg:text-6xl font-normal text-gray-900 tracking-tight mb-6 leading-[1.1]">
+                Everything your shop needs, in{" "}
+                <span className="text-blue-600 font-bold">one place</span>
+              </h1>
+
+              <p className="fade-up delay-2 text-lg text-gray-600 leading-relaxed mb-10 max-w-lg">
+                Browse products, compare prices, and order in bulk. Fast, reliable delivery across Nepal.
+              </p>
+
+              <div className="fade-up delay-3 flex flex-wrap gap-4 mb-12">
+                <button
+                  type="button"
+                  onClick={() => router.push("/catalogue")}
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white rounded-xl px-8 py-4 text-base font-semibold hover:bg-blue-700 hover:shadow-[0_8px_30px_rgba(37,99,235,0.4)] active:scale-[0.98] transition-all duration-300"
+                >
+                  Browse catalogue
+                  <ArrowRight size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/track")}
+                  className="inline-flex items-center gap-2 bg-black text-white rounded-xl px-8 py-4 text-base font-semibold hover:bg-gray-900 shadow-lg active:scale-[0.98] transition-all duration-200"
+                >
+                  Track my order
+                </button>
+              </div>
+
+              <div className="fade-up delay-4 grid grid-cols-4 gap-8 pt-8 border-t border-gray-200">
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{totalProducts || 39}+</p>
+                  <p className="text-sm text-gray-600 mt-1">Products</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{districtsCount || 10}</p>
+                  <p className="text-sm text-gray-600 mt-1">Districts</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">24h</p>
+                  <p className="text-sm text-gray-600 mt-1">Delivery</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">1K+</p>
+                  <p className="text-sm text-gray-600 mt-1">Orders</p>
+                </div>
               </div>
             </div>
 
-            <div className="pop-in absolute bottom-10 right-0 bg-white rounded-2xl shadow-md border border-[color:var(--gray)] p-3 flex items-center gap-2" style={{ animationDelay: "1s" }}>
-              <div className="w-8 h-8 bg-[color:var(--blue-light)] rounded-lg flex items-center justify-center">
-                <TrendingUp size={18} className="text-[color:var(--blue)]" />
+            {/* RIGHT */}
+            <div className="relative lg:h-[600px] flex items-center justify-center">
+              <div className="float-anim relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-purple-100 rounded-3xl blur-3xl opacity-20"></div>
+                <Image
+                  src="/image.png"
+                  alt="DISTRO wholesale cart"
+                  width={580}
+                  height={500}
+                  priority
+                  className="relative z-10"
+                  style={{ objectFit: "contain", width: "100%", height: "auto" }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.endsWith("/image.svg")) target.src = "/image.svg";
+                  }}
+                />
               </div>
-              <div>
-                <p className="text-sm font-bold text-[color:var(--ink)] leading-tight">Rs 1.2L</p>
-                <p className="text-[10px] text-[color:var(--gray2)] leading-tight">This month</p>
-              </div>
-            </div>
 
-            <div className="pop-in absolute top-1/2 right-4 -translate-y-1/2 bg-white rounded-2xl shadow-md border border-[color:var(--gray)] p-3 flex items-center gap-2" style={{ animationDelay: "1.2s" }}>
-              <div className="w-8 h-8 bg-[#FEF3C7] rounded-lg flex items-center justify-center">
-                <Box size={18} className="text-[color:var(--amber)]" />
+              {/* Floating badges */}
+              <div className="pop-in absolute top-8 left-0 bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-4 flex items-center gap-3 backdrop-blur-sm" style={{ animationDelay: ".8s" }}>
+                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                  <Check size={20} className="text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Order placed!</p>
+                  <p className="text-xs text-gray-500 mt-0.5">ORD-20240315-0042</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold text-[color:var(--ink)] leading-tight">
-                  {totalProducts || 39} products
-                </p>
-                <p className="text-[10px] text-[color:var(--gray2)] leading-tight">In stock now</p>
+
+              <div className="pop-in absolute bottom-12 right-0 bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-4 flex items-center gap-3 backdrop-blur-sm" style={{ animationDelay: "1s" }}>
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <TrendingUp size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Rs 1.2L</p>
+                  <p className="text-xs text-gray-500 mt-0.5">This month</p>
+                </div>
+              </div>
+
+              <div className="pop-in absolute top-1/2 right-4 -translate-y-1/2 bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-4 flex items-center gap-3 backdrop-blur-sm" style={{ animationDelay: "1.2s" }}>
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+                  <Box size={20} className="text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{totalProducts || 39} products</p>
+                  <p className="text-xs text-gray-500 mt-0.5">In stock now</p>
+                </div>
               </div>
             </div>
           </div>
@@ -397,55 +318,71 @@ export default function HomeClient({
       </section>
 
       {/* ── TRUST STRIP ─────────────────────────────────────── */}
-      <section className="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto px-6 md:px-10 py-8">
-        <TrustItem
-          icon={<BarChart3 size={22} />}
-          title="Wholesale prices"
-          sub="Best rates on all products"
-          tone="blue"
-        />
-        <TrustItem
-          icon={<Truck size={22} />}
-          title="Fast delivery"
-          sub="1 day Kathmandu valley"
-          tone="green"
-        />
-        <TrustItem
-          icon={<ShieldCheck size={22} />}
-          title="IRD invoices"
-          sub="VAT invoices on every order"
-          tone="red"
-        />
-        <TrustItem
-          icon={<Clock size={22} />}
-          title="Credit available"
-          sub="Udhari for trusted buyers"
-          tone="amber"
-        />
+      <section className="reveal max-w-6xl mx-auto px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex items-start gap-4">
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+              <BarChart3 size={22} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-gray-900 mb-1">Wholesale prices</p>
+              <p className="text-sm text-gray-600">Best rates on all products</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex items-start gap-4">
+            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+              <Truck size={22} className="text-green-600" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-gray-900 mb-1">Fast delivery</p>
+              <p className="text-sm text-gray-600">1 day Kathmandu valley</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex items-start gap-4">
+            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+              <ShieldCheck size={22} className="text-purple-600" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-gray-900 mb-1">IRD invoices</p>
+              <p className="text-sm text-gray-600">VAT invoices on every order</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex items-start gap-4">
+            <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
+              <Clock size={22} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-gray-900 mb-1">Credit available</p>
+              <p className="text-sm text-gray-600">Udhari for trusted buyers</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ── CATEGORIES ──────────────────────────────────────── */}
-      <section className="reveal max-w-6xl mx-auto px-6 md:px-10 pb-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display font-extrabold text-[22px] text-[color:var(--ink)]">
-            Shop by category
-          </h2>
+      <section className="reveal max-w-6xl mx-auto px-6 lg:px-8 py-20">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h2 className="font-['Alegreya_Sans'] text-3xl font-bold text-gray-900 mb-2">Shop by category</h2>
+            <p className="text-base text-gray-600">Explore our full range of wholesale products</p>
+          </div>
           <Link
             href="/catalogue"
-            className="text-sm font-semibold text-[color:var(--blue)] hover:underline"
+            className="hidden md:inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:gap-3 transition-all"
           >
-            View all →
+            View all
+            <ArrowRight size={16} />
           </Link>
         </div>
 
         {categories.length === 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="skeleton h-48 rounded-2xl" />
+              <div key={i} className="h-56 bg-gray-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {categories.slice(0, 6).map((cat) => {
               const count = cat.productCount ?? cat._count?.products ?? 0;
               const tone = categoryColor(cat.name);
@@ -454,15 +391,19 @@ export default function HomeClient({
                   key={cat.id}
                   type="button"
                   onClick={() => router.push(`/catalogue?categoryId=${cat.id}`)}
-                  className="group text-left bg-white rounded-2xl border border-[color:var(--gray)] hover:border-[color:var(--blue)] hover:shadow-[0_10px_30px_rgba(37,99,235,.15)] hover:-translate-y-1 transition p-5"
+                  className="group text-left bg-white rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 p-6"
                 >
-                  <p className="text-base font-bold text-[color:var(--ink)]">{cat.name}</p>
-                  <p className="text-xs text-[color:var(--gray2)] mt-0.5">{count} products</p>
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900 mb-1">{cat.name}</p>
+                      <p className="text-sm text-gray-600">{count} products</p>
+                    </div>
+                  </div>
                   <div
-                    className="h-28 flex items-center justify-center mt-3 rounded-xl"
+                    className="h-32 flex items-center justify-center rounded-xl"
                     style={{ background: tone.bg }}
                   >
-                    <div className="group-hover:scale-110 transition-transform">
+                    <div className="group-hover:scale-110 transition-transform duration-300">
                       <CategoryIcon name={cat.name} />
                     </div>
                   </div>
@@ -474,81 +415,83 @@ export default function HomeClient({
       </section>
 
       {/* ── FEATURED PRODUCTS ───────────────────────────────── */}
-      <section className="reveal max-w-6xl mx-auto px-6 md:px-10 pb-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display font-extrabold text-[22px] text-[color:var(--ink)]">
-            Featured products
-          </h2>
-          <Link
-            href="/catalogue"
-            className="text-sm font-semibold text-[color:var(--blue)] hover:underline"
-          >
-            See all {totalProducts || products.length} →
-          </Link>
-        </div>
-
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {BRAND_PILLS.map((b) => {
-            const active = activeBrand === b;
-            return (
-              <button
-                key={b}
-                type="button"
-                onClick={() => setActiveBrand(b)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
-                  active
-                    ? "bg-[color:var(--blue)] text-white"
-                    : "bg-white border border-[color:var(--gray)] text-[color:var(--ink)] hover:border-[color:var(--blue-mid)]"
-                }`}
-              >
-                {b}
-              </button>
-            );
-          })}
-        </div>
-
-        {products.length === 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="skeleton h-72 rounded-xl" />
-            ))}
+      <section className="reveal bg-slate-50/30 py-20">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="font-['Alegreya_Sans'] text-3xl font-bold text-gray-900 mb-2">Featured products</h2>
+              <p className="text-base text-gray-600">Popular items from trusted brands</p>
+            </div>
+            <Link
+              href="/catalogue"
+              className="hidden md:inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:gap-3 transition-all"
+            >
+              See all {totalProducts || products.length}
+              <ArrowRight size={16} />
+            </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {filtered.map((p) => (
-              <ProductMini key={p.id} product={p} onAdd={addToCart} />
-            ))}
-          </div>
-        )}
 
-        <div className="mt-8 flex justify-center">
-          <button
-            type="button"
-            onClick={() => router.push("/catalogue")}
-            className="w-full max-w-xs border-2 border-[color:var(--blue)] text-[color:var(--blue)] font-bold rounded-xl py-3 hover:bg-[color:var(--blue)] hover:text-white transition"
-          >
-            Browse all products
-          </button>
+          <div className="flex gap-3 mb-8 flex-wrap">
+            {BRAND_PILLS.map((b) => {
+              const active = activeBrand === b;
+              return (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => setActiveBrand(b)}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${active
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:shadow-md"
+                    }`}
+                >
+                  {b}
+                </button>
+              );
+            })}
+          </div>
+
+          {products.length === 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="h-80 bg-white rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {filtered.map((p) => (
+                <ProductMini key={p.id} product={p} onAdd={addToCart} />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-12 flex justify-center">
+            <button
+              type="button"
+              onClick={() => router.push("/catalogue")}
+              className="inline-flex items-center gap-2 bg-white text-gray-900 border border-gray-200 rounded-xl px-8 py-4 text-base font-semibold hover:border-gray-300 hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+            >
+              Browse all products
+              <ArrowRight size={18} />
+            </button>
+          </div>
         </div>
       </section>
 
       {/* ── PROMO BANNER ─────────────────────────────────────── */}
-      <section className="reveal max-w-6xl mx-auto px-6 md:px-10 pb-12">
-        <div className="relative bg-[color:var(--blue)] rounded-3xl p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6 overflow-hidden">
-          <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute -bottom-10 -right-10 w-64 h-64 rounded-full bg-white/5" />
+      <section className="reveal max-w-6xl mx-auto px-6 lg:px-8 py-20">
+        <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-10 lg:p-12 flex flex-col md:flex-row md:items-center md:justify-between gap-8 overflow-hidden shadow-2xl shadow-blue-500/20">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl" />
 
-          <div className="relative z-10">
-            <p className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-2">
+          <div className="relative z-10 max-w-xl">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-blue-100 bg-blue-500/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+              <span className="w-2 h-2 bg-blue-200 rounded-full animate-pulse"></span>
               Limited time offer
             </p>
-            <p className="text-[28px] font-extrabold text-white leading-tight">
-              Register today —
-            </p>
-            <p className="text-[28px] font-extrabold text-white leading-tight">
-              {formatPrice(200)} credit on your first order.
-            </p>
-            <p className="text-sm text-blue-200 mt-2">
+            <h3 className="text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
+              Register today — get {formatPrice(200)} credit on your first order
+            </h3>
+            <p className="text-base text-blue-100">
               For registered shopkeepers only · Valid this week
             </p>
           </div>
@@ -557,7 +500,7 @@ export default function HomeClient({
             <button
               type="button"
               onClick={() => router.push("/register")}
-              className="inline-flex items-center gap-2 bg-white text-[color:var(--blue)] font-bold px-8 py-3.5 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition"
+              className="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-4 rounded-xl hover:shadow-2xl hover:-translate-y-1 active:scale-[0.98] transition-all duration-200"
             >
               Create free account
               <ArrowRight size={18} />
@@ -567,7 +510,7 @@ export default function HomeClient({
       </section>
 
       {/* ── TESTIMONIALS ─────────────────────────────────────── */}
-      <section className="reveal max-w-6xl mx-auto px-6 md:px-10 pb-12">
+      <section className="reveal max-w-6xl mx-auto px-6 lg:px-8 py-20">
         <ClientFeedback />
       </section>
     </>
