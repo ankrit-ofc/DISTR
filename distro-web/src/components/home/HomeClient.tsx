@@ -488,8 +488,8 @@ export default function HomeClient({
               <span className="w-2 h-2 bg-blue-200 rounded-full animate-pulse"></span>
               Limited time offer
             </p>
-            <h3 className="text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
-              Register today — get {formatPrice(200)} credit on your first order
+            <h3 className="font-['Alegreya_Sans'] text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
+              Register today and get {formatPrice(200)} credit on your first order
             </h3>
             <p className="text-base text-blue-100">
               For registered shopkeepers only · Valid this week

@@ -92,7 +92,7 @@ export default function ClientFeedback() {
       <article className="max-w-screen-md mx-auto text-center space-y-2 px-6">
         <TimelineContent
           as="h2"
-          className="font-display font-extrabold text-[28px] md:text-4xl text-[color:var(--ink)]"
+          className="font-['Alegreya_Sans'] font-extrabold text-[28px] md:text-4xl text-[color:var(--ink)]"
           animationNum={0}
           customVariants={revealVariants}
           timelineRef={testimonialRef}
