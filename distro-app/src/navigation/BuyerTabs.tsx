@@ -23,6 +23,7 @@ import { useCartStore } from "../store/cartStore";
 import { api } from "../lib/api";
 import { useEffect, useState } from "react";
 import { colors, radius, typography } from "../lib/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator();
 const CatalogueStack = createStackNavigator();
@@ -107,6 +108,7 @@ function TabIcon({ name, icon, iconFocused, focused, badge }: TabIconConfig & { 
 }
 
 export function BuyerTabs() {
+  const insets = useSafeAreaInsets();
   const totalItems = useCartStore((s) => s.totalItems());
   const [chatUnread, setChatUnread] = useState(0);
 
@@ -123,7 +125,7 @@ export function BuyerTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { height: 60 + (insets.bottom || 0), paddingBottom: 8 + (insets.bottom || 0) }],
         tabBarShowLabel: false,
       }}
     >

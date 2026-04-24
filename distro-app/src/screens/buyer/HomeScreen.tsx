@@ -1,8 +1,8 @@
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, Dimensions, FlatList,
+  RefreshControl, Dimensions, FlatList, Image, Animated,
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../store/authStore";
@@ -14,6 +14,76 @@ import { SkeletonLoader, SkeletonProductCard, SkeletonCategoryChip } from "../..
 
 const { width: W } = Dimensions.get("window");
 const CARD_W = (W - spacing.lg * 2 - spacing.sm) / 2;
+const BANNER_W = W - spacing.lg * 2;
+
+// ─── Banner Carousel ──────────────────────────────────────────────────────────
+const BANNERS = [
+  require("../../../assets/banner1.png"),
+  require("../../../assets/banner2.png"),
+];
+
+function BannerCarousel() {
+  const [active, setActive] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const timer = setInterval(() => {
+      if (!mounted) return;
+      let next = (active + 1) % BANNERS.length;
+      flatListRef.current?.scrollToIndex({ index: next, animated: true });
+      setActive(next);
+    }, 3000);
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+    };
+  }, [active]);
+
+  return (
+    <View style={bc.wrap}>
+      <FlatList
+        ref={flatListRef}
+        data={BANNERS}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(e) => setActive(Math.round(e.nativeEvent.contentOffset.x / BANNER_W))}
+        keyExtractor={(_, i) => String(i)}
+        renderItem={({ item }) => (
+          <Image source={item} style={bc.img} resizeMode="cover" />
+        )}
+      />
+      <View style={bc.dots}>
+        {BANNERS.map((_, i) => (
+          <View key={i} style={[bc.dot, active === i && bc.dotActive]} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const bc = StyleSheet.create({
+  wrap: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radius.lg,
+    overflow: "hidden",
+    height: BANNER_W / 2,
+    backgroundColor: colors.gray100,
+  },
+  img: { width: BANNER_W, height: BANNER_W / 2 },
+  dots: {
+    position: "absolute",
+    bottom: 10,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+  },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.4)" },
+  dotActive: { backgroundColor: colors.white, width: 14 },
+});
 
 interface Announcement { id: string; text: string; }
 interface Category { id: string; name: string; emoji?: string; }
@@ -276,6 +346,9 @@ export function HomeScreen({ navigation }: any) {
           <Text style={s.searchText}>Search products...</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Banner Carousel */}
+      <BannerCarousel />
 
       {/* Announcement ticker */}
       <AnnouncementTicker items={announcements} loading={loading} />
