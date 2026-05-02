@@ -24,7 +24,7 @@ export function RootNavigator() {
       await loadToken();
       const done = await SecureStore.getItemAsync(ONBOARDING_KEY).catch(() => null);
       setOnboardingDone(done === "true");
-      await ExpoSplashScreen.hideAsync().catch(() => {});
+      await ExpoSplashScreen.hideAsync().catch(() => { });
       setPhase("splash");
     })();
   }, []);
@@ -38,7 +38,7 @@ export function RootNavigator() {
   }, [onboardingDone]);
 
   const markOnboardingDone = useCallback(async () => {
-    await SecureStore.setItemAsync(ONBOARDING_KEY, "true").catch(() => {});
+    await SecureStore.setItemAsync(ONBOARDING_KEY, "true").catch(() => { });
   }, []);
 
   const handleOnboardingDone = useCallback(async () => {

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Animated, {
   useSharedValue,
@@ -56,11 +57,12 @@ function AdminTabIcon({
 }
 
 export function AdminTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { height: 60 + (insets.bottom || 0), paddingBottom: 8 + (insets.bottom || 0) }],
         tabBarShowLabel: false,
       }}
     >
@@ -118,8 +120,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopColor: colors.gray100,
     borderTopWidth: 1,
-    height: 72,
-    paddingBottom: 12,
+    height: 60,
+    paddingBottom: 8,
     paddingTop: 8,
   },
   tabIconWrap: {

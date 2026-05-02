@@ -71,7 +71,12 @@ export function SkeletonProductCard() {
 }
 
 export function SkeletonCategoryChip() {
-  return <SkeletonLoader width={80} height={36} borderRadius={radius.full} />;
+  return (
+    <View style={{ alignItems: "center", gap: 8, width: 72 }}>
+      <SkeletonLoader width={60} height={60} borderRadius={30} />
+      <SkeletonLoader width={40} height={10} borderRadius={4} />
+    </View>
+  );
 }
 
 const sk = StyleSheet.create({

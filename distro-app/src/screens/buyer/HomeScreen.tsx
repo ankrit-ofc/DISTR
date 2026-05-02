@@ -15,6 +15,14 @@ import { SkeletonLoader, SkeletonProductCard, SkeletonCategoryChip } from "../..
 const { width: W } = Dimensions.get("window");
 const CARD_W = (W - spacing.lg * 2 - spacing.sm) / 2;
 const BANNER_W = W - spacing.lg * 2;
+const CAT_COLORS = [
+  "#EFF6FF", // Blue
+  "#F0FDF4", // Green
+  "#FEF3C7", // Amber
+  "#FEE2E2", // Red
+  "#EDE9FE", // Purple
+  "#ECFDF5", // Emerald
+];
 
 // ─── Banner Carousel ──────────────────────────────────────────────────────────
 const BANNERS = [
@@ -95,12 +103,27 @@ interface Product {
 // ─── Announcement ticker ──────────────────────────────────────────────────────
 function AnnouncementTicker({ items, loading }: { items: Announcement[]; loading: boolean }) {
   const [idx, setIdx] = useState(0);
+  const scrollAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (items.length <= 1) return;
-    const t = setInterval(() => setIdx(i => (i + 1) % items.length), 3500);
-    return () => clearInterval(t);
-  }, [items.length]);
+    if (!items.length || loading) return;
+    const run = () => {
+      scrollAnim.setValue(W);
+      Animated.timing(scrollAnim, {
+        toValue: -W,
+        duration: 10000,
+        useNativeDriver: true,
+        easing: (t) => t,
+      }).start(({ finished }) => {
+        if (finished) {
+          setIdx((i) => (i + 1) % items.length);
+          run();
+        }
+      });
+    };
+    run();
+    return () => scrollAnim.stopAnimation();
+  }, [items.length, loading]);
 
   if (loading) {
     return (
@@ -116,7 +139,14 @@ function AnnouncementTicker({ items, loading }: { items: Announcement[]; loading
     <View style={tk.wrap}>
       <View style={tk.ticker}>
         <View style={tk.dot} />
-        <Text style={tk.text} numberOfLines={1}>{items[idx].text}</Text>
+        <View style={{ flex: 1, overflow: "hidden" }}>
+          <Animated.Text
+            style={[tk.text, { transform: [{ translateX: scrollAnim }] }]}
+            numberOfLines={1}
+          >
+            {items[idx].text}
+          </Animated.Text>
+        </View>
       </View>
     </View>
   );
@@ -141,10 +171,10 @@ const tk = StyleSheet.create({
     flexShrink: 0,
   },
   text: {
-    flex: 1,
     fontSize: 13,
     fontFamily: typography.bodyMedium,
     color: colors.ink,
+    width: W, // Ensure wide enough for animation range
   },
 });
 
@@ -158,9 +188,17 @@ function ProductCard({ item, onPress, onAdd }: { item: Product; onPress: () => v
     <TouchableOpacity style={[pc.card, shadow.card]} onPress={onPress} activeOpacity={0.88}>
       {/* Image area */}
       <View style={pc.imgWrap}>
-        <View style={pc.imgPlaceholder}>
-          <Ionicons name="cube-outline" size={28} color={colors.blue} style={{ opacity: 0.4 }} />
-        </View>
+        {item.imageUrl ? (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={pc.img}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={pc.imgPlaceholder}>
+            <Ionicons name="cube-outline" size={28} color={colors.blue} style={{ opacity: 0.4 }} />
+          </View>
+        )}
         {discount > 0 && !outOfStock && (
           <View style={pc.badge}>
             <Text style={pc.badgeText}>{discount}%</Text>
@@ -201,14 +239,18 @@ const pc = StyleSheet.create({
     overflow: "hidden",
   },
   imgWrap: {
-    width: "100%",
-    height: 56,
+    width: CARD_W,
+    height: 140,
+    backgroundColor: colors.blueLight,
     position: "relative",
+  },
+  img: {
+    width: "100%",
+    height: "100%",
   },
   imgPlaceholder: {
     width: "100%",
     height: "100%",
-    backgroundColor: colors.blueLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -347,11 +389,11 @@ export function HomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Banner Carousel */}
-      <BannerCarousel />
-
       {/* Announcement ticker */}
       <AnnouncementTicker items={announcements} loading={loading} />
+
+      {/* Banner Carousel */}
+      <BannerCarousel />
 
       {/* Categories */}
       <View style={s.sectionHeaderRow}>
@@ -363,7 +405,7 @@ export function HomeScreen({ navigation }: any) {
         contentContainerStyle={s.hListContent}
         data={loading ? ([1, 2, 3, 4] as any[]) : categories}
         keyExtractor={(item, i) => loading ? String(i) : item.id}
-        renderItem={({ item }) =>
+        renderItem={({ item, index }) =>
           loading ? (
             <SkeletonCategoryChip />
           ) : (
@@ -372,8 +414,10 @@ export function HomeScreen({ navigation }: any) {
               activeOpacity={0.8}
               onPress={() => goCatalogue({ categoryId: item.id, categoryName: item.name })}
             >
-              {item.emoji && <Text style={s.categoryEmoji}>{item.emoji}</Text>}
-              <Text style={s.categoryName}>{item.name}</Text>
+              <View style={[s.categoryIcon, { backgroundColor: CAT_COLORS[index % CAT_COLORS.length] }]}>
+                {item.emoji && <Text style={s.categoryEmoji}>{item.emoji}</Text>}
+              </View>
+              <Text style={s.categoryName} numberOfLines={1}>{item.name}</Text>
             </TouchableOpacity>
           )
         }
@@ -515,21 +559,23 @@ const s = StyleSheet.create({
     gap: spacing.sm,
   },
   categoryChip: {
-    backgroundColor: colors.white,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
     alignItems: "center",
-    gap: 4,
-    minWidth: 64,
+    gap: 8,
+    width: 72,
   },
-  categoryEmoji: { fontSize: 20 },
+  categoryIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  categoryEmoji: { fontSize: 26 },
   categoryName: {
-    fontSize: 8,
-    fontFamily: typography.heading,
+    fontSize: 10,
+    fontFamily: typography.bodyMedium,
     color: colors.ink,
+    textAlign: "center",
   },
 
   // Grid

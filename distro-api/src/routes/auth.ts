@@ -406,12 +406,12 @@ router.patch('/me', requireAuth, async (req: Request, res: Response): Promise<vo
   }
 
   const data: Record<string, any> = {};
-  if (storeName   !== undefined) data.storeName   = storeName;
-  if (ownerName   !== undefined) data.ownerName   = ownerName;
-  if (district    !== undefined) data.district    = district;
-  if (address     !== undefined) data.address     = address;
+  if (storeName !== undefined) data.storeName = storeName;
+  if (ownerName !== undefined) data.ownerName = ownerName;
+  if (district !== undefined) data.district = district;
+  if (address !== undefined) data.address = address;
   if (companyName !== undefined) data.companyName = companyName || null;
-  if (panNumber   !== undefined) data.panNumber   = panNumber   || null;
+  if (panNumber !== undefined) data.panNumber = panNumber || null;
 
   const updated = await prisma.profile.update({ where: { id: authProfile.id }, data });
   const { passwordHash, otpCode, otpExpiry, ...safeProfile } = updated;
